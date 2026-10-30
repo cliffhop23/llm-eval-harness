@@ -1,0 +1,26 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install
+        run: pip install -e ".[dev]"
+      - name: Lint
+        run: ruff check .
+      - name: Test
+        run: pytest -q
+      - name: Evaluation gate (mock provider)
+        run: |
+          llm-eval run --dataset datasets/support_qa.jsonl \
+            --out reports/run.json --html reports/run.html \
+            --min-pass-rate 0.9 --min-judge 4.0
